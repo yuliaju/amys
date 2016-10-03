@@ -7,6 +7,8 @@ export default class TextResult extends React.Component {
     return (
       <div>
         {this.props.name}
+        <br />
+        {this.props.address}
       </div>
     )
   }

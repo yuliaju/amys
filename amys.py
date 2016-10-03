@@ -4,6 +4,8 @@ import json
 
 from yelp.client import Client
 from yelp.oauth1_authenticator import Oauth1Authenticator
+from yelp.obj.coordinate import Coordinate
+from yelp.obj.response_object import ResponseObject
 from flask.json import jsonify
 
 app = Flask(__name__)
@@ -39,12 +41,16 @@ def search_yelp(location):
 
 def format_yelp(searchResponse):
     # modify search response
-    # print(searchResponse.businesses)
-    response = map(lambda x : x.__dict__, searchResponse.businesses)
-    print(response)
+    response = map(lambda x : serializeResponse(x), searchResponse.businesses)
     return jsonify(response)
-    # return json.dumps(searchResponse.businesses[0].name)
 
+def serializeResponse(business):
+    # convert business to a dict
+    business = business.__dict__
+    # convert location to a dict
+    business["location"] = business["location"].__dict__
+    business["location"]["coordinate"] = business["location"]["coordinate"].__dict__
+    return business
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -34,12 +34,17 @@ export default class Amys extends React.Component {
       .then((response) => {
         return response.text();
       }).then((text) => {
-        console.log(text);
+        // console.log(text);
         // make map result objects for all of the responses
-        ReactDOM.render(
-          React.createElement(TextResult, {name: text, address: 'something'}),
-          document.getElementById('info')
-        );
+        var jsons = JSON.parse(text);
+        for (var json in jsons) {
+          var business = jsons[json]
+
+          ReactDOM.render(
+            React.createElement(TextResult, {name: business.name, address: business.location.address[0]}),
+            document.getElementById('info')
+          );
+        }
       }).catch((error) => {
         console.error(error);
       });
