@@ -1,0 +1,27 @@
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Something</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD-t_6mqKXkBUGJfQVs_xRlZ1cXWGtm9zQ&libraries=places"></script>
+  </head>
+  <body>
+    <!-- <main class="container"> -->
+      <!-- <h1>Something</h1> -->
+      <div class="container">
+      <h1>test</h1>
+      <h2 class="subheader">
+        Bacon ipsum dolor amet boudin jerky doner
+        <br />
+        t-bone pork loin spare ribs fatback.
+      </h2>
+      <div id="app"></div>
+      <div id="info"></div>
+    </div>
+    <!-- </main> -->
+    <script async src="{{url_for('static', filename='js/main.bundle.js')}}"></script>
+  </body>
+</html>
