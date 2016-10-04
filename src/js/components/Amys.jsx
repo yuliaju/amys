@@ -3,7 +3,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import TextResult from './TextResult'
+import TextResultList from './TextResultList'
 import MapResult from './MapResult'
+import MapResultList from './MapResultList'
 import Geosuggest from 'react-geosuggest';
 
 export default class Amys extends React.Component {
@@ -34,17 +36,20 @@ export default class Amys extends React.Component {
       .then((response) => {
         return response.text();
       }).then((text) => {
-        // console.log(text);
-        // make map result objects for all of the responses
+        var textResults: Array<any> = [];
         var jsons = JSON.parse(text);
         for (var json in jsons) {
-          var business = jsons[json]
+          var business = jsons[json];
 
-          ReactDOM.render(
-            React.createElement(TextResult, {name: business.name, address: business.location.address[0]}),
-            document.getElementById('info')
+          textResults.push(
+            {name: business.name, address: business.location.address[0]}
           );
         }
+
+        ReactDOM.render(
+          React.createElement(TextResultList, {textResults: textResults}),
+          document.getElementById('textResults')
+        );
       }).catch((error) => {
         console.error(error);
       });
