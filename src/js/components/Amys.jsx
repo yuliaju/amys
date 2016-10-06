@@ -7,8 +7,23 @@ import TextResultList from './TextResultList'
 import MapResult from './MapResult'
 import MapResultList from './MapResultList'
 import Geosuggest from 'react-geosuggest';
+import Button from 'react-button';
 
 export default class Amys extends React.Component {
+  state: {
+    openNow: boolean;
+    location: string
+  }
+
+  constructor(props: any) {
+    super(props);
+
+    this.state = {
+      openNow   : false,
+      location  : ""
+    };
+  }
+
   render() {
     return (
       <div>
@@ -18,28 +33,46 @@ export default class Amys extends React.Component {
           onSuggestSelect={(sug) => this.onSuggestSelect(sug)}
           location={new google.maps.LatLng(40.730610, -73.935242)}
           radius="20" />
+        <input
+          type="checkbox"
+          checked={this.state.openNow}
+          onChange={() => this.onChangeOpenNow()} />
+        <br />
+        <Button
+          onClick={e => this.onClick(e)}
+          label="Search" />
       </div>
     )
+  }
+
+  onClick(event: any) {
+    console.log("button clicked");
+    this.searchYelp(this.state.location);
+  }
+
+  onChangeOpenNow() {
+    this.setState({openNow: !this.state.openNow});
   }
 
   onSuggestSelect(suggest: Object) {
     console.log(suggest);
 
-    this.searchYelp(suggest.label);
+    this.setState({location: suggest.label});
+    // this.searchYelp(suggest.label);
   }
 
   searchYelp(location: string) {
-    var path: string = location;
-    var url: string = 'http://localhost:5000/search/' + path;
+    let path: string = location;
+    let url: string = 'http://localhost:5000/search/' + path;
 
     fetch(url)
       .then((response) => {
         return response.text();
       }).then((text) => {
-        var textResults: Array<any> = [];
-        var jsons = JSON.parse(text);
-        for (var json in jsons) {
-          var business = jsons[json];
+        let textResults: Array<any> = [];
+        let jsons = JSON.parse(text);
+        for (let json in jsons) {
+          let business = jsons[json];
 
           textResults.push(
             {name: business.name, address: business.location.address[0]}

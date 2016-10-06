@@ -44,6 +44,7 @@
     "normalize.less": "^1.0.0",
     "react": "^0.14.0",
     "react-addons-shallow-compare": "^0.14.0",
+    "react-button": "^1.2.1",
     "react-dom": "^0.14.0",
     "react-geosuggest": "^1.25.1",
     "webpack": "^1.13.1"
