@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import ReactDOM from 'react-dom';
+import TextResult from './TextResult'
 
 export default class TextResultList extends React.Component {
     constructor(props: any) {
@@ -10,18 +11,11 @@ export default class TextResultList extends React.Component {
     render() {
       return (
         <ul>
-          {this.props.textResults.map(textResult => this.renderTextResult(textResult))}
+          {this.props.textResults.map((textResult) => (
+            <TextResult
+              result={textResult} />
+          ))}
         </ul>
       )
-    }
-
-    renderTextResult(textResult: Object) {
-        return (
-          <li>
-            {textResult.name}
-            <br />
-            {textResult.address}
-          </li>
-        )
     }
 }
