@@ -2,12 +2,10 @@
 /* global google */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import TextResultList from './TextResultList'
-import MapResultList from './MapResultList'
+import Results from './Results'
 import Geosuggest from 'react-geosuggest';
 import Button from 'react-button';
 import Dropdown from 'react-dropdown';
-import Map, {GoogleApiWrapper} from 'google-maps-react'
 import {append, curry} from 'ramda'
 import {serialize} from '../utils/utils.js'
 
@@ -87,12 +85,20 @@ export class Amys extends React.Component {
           onClick={(event) => this.onSubmit(event)}
           label="Search" />
         <br />
-
-        {/* Results display */}
-        <TextResultList
-          textResults={this.state.textResults} />
       </div>
     )
+  }
+
+  renderChildren() {
+    ReactDOM.render(<Results textResults={this.state.textResults} />, document.getElementById('results'))
+  }
+
+  componentDidMount() {
+    this.renderChildren();
+  }
+
+  componentDidUpdate() {
+    this.renderChildren();
   }
 
   onText(index: number, event: any): void {
@@ -144,17 +150,10 @@ export class Amys extends React.Component {
   }
 
   getSearchUrls(): void {
-    // let params = Object.assign({}, this.state);
-    // delete params.terms;
-    //
-    // for (let term in this.state.terms) {
+    let path: string = serialize(this.state.sharedQueryParams);
+    let url: string = 'http://localhost:5000/business_search/?' + path;
 
-
-      let path: string = serialize(this.state.sharedQueryParams);
-      let url: string = 'http://localhost:5000/business_search/?' + path;
-
-      this.searchYelp(url);
-    // }
+    this.searchYelp(url);
   }
 
   searchYelp(url: string): void {
@@ -171,8 +170,4 @@ export class Amys extends React.Component {
   }
 };
 
-export default GoogleApiWrapper({
-  apiKey: "AIzaSyD-t_6mqKXkBUGJfQVs_xRlZ1cXWGtm9zQ"
-})(Amys)
-
-ReactDOM.render(<Amys />, document.getElementById('app'));
+ReactDOM.render(<Amys />, document.getElementById('search'));
