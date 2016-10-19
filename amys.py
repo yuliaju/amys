@@ -33,7 +33,8 @@ def business_search():
             headers=get_auth_dict(get_yelp_access_token()))
     if response.status_code == 200:
         print "Got 200 for business search"
-        return json.dumps(response.json())
+        modifiedJson = { term: response.json()}
+        return json.dumps(modifiedJson)
     else:
         print "Received non-200 response({}) for business search, returning empty response".format(response.status_code)
         return EMPTY_RESPONSE

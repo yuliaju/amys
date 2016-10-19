@@ -7,17 +7,32 @@ import TextResultList from './TextResultList'
 import MapResultList from './MapResultList'
 
 export default class Results extends React.Component {
+  constructor(props: any) {
+    super(props);
+  }
+
   render() {
     return (
       <div>
         <Map google={window.google}
-          style={{width: '100%', height: '50%', position: 'relative'}}
+          style={{width: '100%', height: '400px'}}
           zoom={14}>
         </Map>
-        
-        <TextResultList
-          style={{width: '100%', height: '50%', position: 'relative', overflow: 'scroll'}}
-          textResults={this.props.textResults} />
+
+        <div style={{width: '100%', height: '400px', overflow: 'scroll'}}>
+          {this.props.textResults.map((termResultPair) => {
+            const term = Object.keys(termResultPair)[0];
+
+            return (
+              <div>
+                <div>{term}</div>
+                <TextResultList
+                  textResults={termResultPair[term]} />
+              </div>
+            )
+          })}
+        </div>
+
       </div>
     )
   }

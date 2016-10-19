@@ -6,3 +6,7 @@ export function serialize(obj: Object): string {
     }
   return str.join("&");
 }
+
+export function serializeTerm(str: String): string {
+  return "&" + encodeURIComponent("term") + "=" + encodeURIComponent(str);
+}

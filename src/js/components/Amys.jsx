@@ -3,19 +3,26 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Results from './Results'
+import TermInput from './TermInput'
 import Geosuggest from 'react-geosuggest';
 import Button from 'react-button';
 import Dropdown from 'react-dropdown';
 import {append, curry} from 'ramda'
-import {serialize} from '../utils/utils.js'
+import {serialize, serializeTerm} from '../utils/utils.js'
+
+const distances = [
+  { label: '2 blocks', value: 161 },
+  { label: '6 blocks', value: 483 },
+  { label: '1 mile', value: 1609 },
+];
 
 export class Amys extends React.Component {
   state: {
     sharedQueryParams : Object;
-    terms             : Array<string>;
     textResults       : Array<any>;
     inputs            : Array<any>;
     termInputs        : Object;
+    radiusLabel       : string;
   }
 
   constructor(props: any) {
@@ -25,35 +32,29 @@ export class Amys extends React.Component {
       sharedQueryParams : {
         openNow   : false,
         location  : "",
-        // term      : "",
-        radius    : 161
+        radiusVal : distances[0].value
       },
-      terms       : [],
       textResults : [],
-      inputs      : [],
-      termInputs  : {}
+      inputs      : [{type: 'text'}],
+      termInputs  : {0: ""},
+      radiusLabel : distances[0].label
     };
 
-    // this.onText = this.onText.bind(this);
+    this.onText = this.onText.bind(this);
   }
 
   render() {
-    const inputs = this.state.inputs.filter(input => input !== null).map((input, index) => {
-      const fn = curry(this.onText)(index);
+    const inputs = this.state.inputs
+                    .filter(input => input !== null)
+                    .map((input, index) => {
+                      const fn = curry(this.onText)(index);
 
-      return (<input type={input.text} key={index} onChange={fn} />);
-    });
-
-    const distances = [
-      { label: '2 blocks', value: 161 },
-      { label: '6 blocks', value: 483 },
-      { label: '1 mile', value: 1609 },
-    ];
-    const defaultDistance = distances[0];
+                      return (<input type={input.text} key={index} onChange={fn} />);
+                    });
 
     return (
       <div>
-        {/* Parameter inputs for query */}
+        {/* Location */}
         <Geosuggest
           placeholder="Start typing!"
           initialValue="New York City"
@@ -62,10 +63,12 @@ export class Amys extends React.Component {
           radius="20" />
 
         {/* Dynamic term inputs  */}
-        {inputs}
         <Button
-          onClick={() => this.onAdd()}
+          onClick={() => this.onAddTermBox()}
           label="Add" />
+        <Button
+          onClick={() => this.onRemoveTermBox()}
+          label="Remove" />
         <br />
 
         <input
@@ -76,9 +79,7 @@ export class Amys extends React.Component {
         <Dropdown
           options={distances}
           onChange={(event) => this.onSelectRadius(event)}
-          value={defaultDistance}
-          placeholder="Select an option" />
-        <br />
+          value={this.state.radiusLabel} />
 
         {/* Search button */}
         <Button
@@ -89,43 +90,36 @@ export class Amys extends React.Component {
     )
   }
 
-  renderChildren() {
-    ReactDOM.render(<Results textResults={this.state.textResults} />, document.getElementById('results'))
-  }
-
-  componentDidMount() {
-    this.renderChildren();
-  }
-
-  componentDidUpdate() {
-    this.renderChildren();
-  }
-
   onText(index: number, event: any): void {
     const newTermInputs = this.state.termInputs;
     newTermInputs[index] = event.target.value;
 
-    // console.log(this.state.termInputs)
-
+    console.log(this.state.termInputs)
     this.setState({termInputs: newTermInputs});
   }
 
-  onAdd(): void {
+  onAddTermBox(): void {
     const oldInputs = this.state.inputs;
     const newInputs = append({type: 'text'}, oldInputs); // , class: 'ma4'
 
     this.setState({inputs: newInputs});
   }
 
-  onSubmit(event: any): void {
-    this.getSearchUrls();
+  onRemoveTermBox(): void {
+    const newInputs = this.state.inputs;
+    let index = newInputs.length - 1;
+    newInputs.pop();
+    const newTermInputs = this.state.termInputs;
+    delete newTermInputs[index];
+
+    this.setState({inputs: newInputs});
+    this.setState({termInputs: newTermInputs});
   }
 
-  onChangeTerm(event: any): void {
-    let newQueryParams = this.state.sharedQueryParams;
-    newQueryParams.term = event.target.value;
-
-    this.setState({sharedQueryParams: newQueryParams});
+  onSubmit(event: any): void {
+    // reset current textResults
+    this.setState({textResults: []});
+    this.getSearchUrls();
   }
 
   onChangeOpenNow(): void {
@@ -138,8 +132,10 @@ export class Amys extends React.Component {
   onSelectRadius(event: any): void {
     let newQueryParams = this.state.sharedQueryParams;
     newQueryParams.radius = event.value;
+    console.log(event);
 
     this.setState({sharedQueryParams: newQueryParams});
+    this.setState({radiusLabel: event.label});
   }
 
   onSuggestSelect(suggest: Object): void {
@@ -151,22 +147,46 @@ export class Amys extends React.Component {
 
   getSearchUrls(): void {
     let path: string = serialize(this.state.sharedQueryParams);
-    let url: string = 'http://localhost:5000/business_search/?' + path;
+    let baseUrl: string = 'http://localhost:5000/business_search/?' + path;
 
-    this.searchYelp(url);
+    for (var index in this.state.termInputs) {
+      if (this.state.termInputs[index].length > 0) {
+        let baseUrlWithTerm = baseUrl + serializeTerm(this.state.termInputs[index]);
+        this.searchYelp(baseUrlWithTerm);
+      }
+    }
   }
 
   searchYelp(url: string): void {
     fetch(url)
       .then((response) => response.json())
       .then((response) => {
-        console.log(response);
+        // console.log(response);
 
-        // display results
-        this.setState({textResults: response.businesses});
+        // append results
+        let newTextResults = this.state.textResults;
+        let term = Object.keys(response)[0];
+        newTextResults.push({[term]: response[term].businesses})
+
+        this.setState({textResults: newTextResults});
       }).catch((error) => {
         console.error(error);
       });
+  }
+
+  renderChildren() {
+    ReactDOM.render(
+      <Results textResults={this.state.textResults} />,
+      document.getElementById('results')
+    )
+  }
+
+  componentDidMount() {
+    this.renderChildren();
+  }
+
+  componentDidUpdate() {
+    this.renderChildren();
   }
 };
 

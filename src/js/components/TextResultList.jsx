@@ -11,9 +11,9 @@ export default class TextResultList extends React.Component {
     render() {
       return (
         <ul>
-          {this.props.textResults.map((textResult) => (
+          {this.props.textResults.map((result) => (
             <TextResult
-              result={textResult} />
+              result={result} />
           ))}
         </ul>
       )
