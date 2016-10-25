@@ -103,8 +103,8 @@ html {
   -webkit-font-smoothing: antialiased;
   width: 100%;
   height: 100%;
-  overflow: hidden-x;
-  text-align: center;
+  // overflow: hidden-x;
+  // text-align: center;
 }
 
 body {
@@ -112,26 +112,10 @@ body {
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  // -webkit-box-align: center;
-  // -webkit-align-items: center;
-  //     -ms-flex-align: center;
-  //         align-items: center;
-  // -webkit-box-pack: center;
-  // -webkit-justify-content: center;
-  //     -ms-flex-pack: center;
-  //         justify-content: center;
   width: 100%;
   height: 100%;
 }
 
-.container {
-  -webkit-box-flex: 0;
-  -webkit-flex: 0 0 auto;
-      -ms-flex: 0 0 auto;
-          flex: 0 0 auto;
-  max-width: 612px;
-  max-width: 34rem;
-}
 
 a {
   color: #3d464d;
@@ -336,4 +320,38 @@ h1 {
 
 .result {
   padding: 8px 0;
+}
+
+.switch {
+    border: 1px solid #ccc;
+    width: 50px;
+    height: 26px;
+    border-radius: 13px;
+    cursor: pointer;
+    display: inline-block;
+    // float: left;
+}
+
+.switch-toggle {
+    border: 1px solid #999;
+    box-shadow: 1px 1px 1px #ccc;
+    width: 25px;
+    height: 24px;
+    left: 0;
+    border-radius: 12px;
+    background: white;
+    position: relative;
+    transition: left .2s ease-in-out;
+}
+
+.switch.on {
+    background: #ADD8E6;
+}
+
+.switch.on .switch-toggle {
+    left: 23px;
+}
+
+.switch.disabled {
+    cursor: not-allowed;
 }

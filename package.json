@@ -44,6 +44,8 @@
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.5.0",
     "google-maps-react": "^1.0.18",
+    "lodash": "^4.16.4",
+    "normalize.css": "^4.1.1",
     "normalize.less": "^1.0.0",
     "ramda": "^0.22.1",
     "react": "^0.14.0",
@@ -52,6 +54,7 @@
     "react-dom": "^0.14.0",
     "react-dropdown": "^1.1.0",
     "react-geosuggest": "^1.25.1",
+    "react-toggle-switch": "^2.1.2",
     "webpack": "^1.13.1"
   }
 }

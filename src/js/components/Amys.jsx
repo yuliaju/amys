@@ -17,13 +17,19 @@ const distances = [
 ];
 
 export class Amys extends React.Component {
+  // START Flow type definitions
   state: {
     sharedQueryParams : Object;
     textResults       : Array<any>;
-    inputs            : Array<any>;
-    termInputs        : Object;
+    // inputs            : Array<any>;
+    termInputs        : Array<string>;
     radiusLabel       : string;
   }
+
+  onText: (index: number, event: any) => void;
+  onRemoveTermBox: (index: number) => void;
+
+  // END Flow type definitions
 
   constructor(props: any) {
     super(props);
@@ -32,43 +38,42 @@ export class Amys extends React.Component {
       sharedQueryParams : {
         openNow   : false,
         location  : "",
-        radiusVal : distances[0].value
+        radius : distances[0].value
       },
       textResults : [],
-      inputs      : [{type: 'text'}],
-      termInputs  : {0: ""},
+      // inputs      : [{index: 0, type: 'text'}],
+      termInputs  : [""],
       radiusLabel : distances[0].label
     };
 
     this.onText = this.onText.bind(this);
+    this.onRemoveTermBox = this.onRemoveTermBox.bind(this);
   }
 
   render() {
-    const inputs = this.state.inputs
-                    .filter(input => input !== null)
-                    .map((input, index) => {
-                      const fn = curry(this.onText)(index);
-
-                      return (<input type={input.text} key={index} onChange={fn} />);
-                    });
-
     return (
       <div>
         {/* Location */}
         <Geosuggest
-          placeholder="Start typing!"
+          placeholder="Enter an address!"
           initialValue="New York City"
           onSuggestSelect={(sug) => this.onSuggestSelect(sug)}
           location={new google.maps.LatLng(40.730610, -73.935242)}
           radius="20" />
 
         {/* Dynamic term inputs  */}
+        {this.state.termInputs
+        // {this.state.inputs
+          .map((term, index) => {
+            const onTextFn = curry(this.onText)(index);
+
+            return (
+              <TermInput index={index} onText={onTextFn} remove={this.onRemoveTermBox} />
+            )
+        })}
         <Button
           onClick={() => this.onAddTermBox()}
           label="Add" />
-        <Button
-          onClick={() => this.onRemoveTermBox()}
-          label="Remove" />
         <br />
 
         <input
@@ -94,25 +99,28 @@ export class Amys extends React.Component {
     const newTermInputs = this.state.termInputs;
     newTermInputs[index] = event.target.value;
 
-    console.log(this.state.termInputs)
     this.setState({termInputs: newTermInputs});
   }
 
   onAddTermBox(): void {
-    const oldInputs = this.state.inputs;
-    const newInputs = append({type: 'text'}, oldInputs); // , class: 'ma4'
+    // const oldInputs = this.state.inputs;
+    // const newInputs = append({type: 'text'}, oldInputs); // , class: 'ma4'
 
-    this.setState({inputs: newInputs});
+    // this.setState({inputs: newInputs});
+    const newTermInputs = this.state.termInputs;
+    newTermInputs.push("");
+
+    this.setState({termInputs: newTermInputs});
   }
 
-  onRemoveTermBox(): void {
-    const newInputs = this.state.inputs;
-    let index = newInputs.length - 1;
-    newInputs.pop();
-    const newTermInputs = this.state.termInputs;
-    delete newTermInputs[index];
+  onRemoveTermBox(index: number): void {
+    console.log(index);
+    // const newInputs = this.state.inputs;
+    // newInputs.splice(index, 1);
+    // this.setState({inputs: newInputs});
 
-    this.setState({inputs: newInputs});
+    const newTermInputs = this.state.termInputs;
+    newTermInputs.splice(index, 1);
     this.setState({termInputs: newTermInputs});
   }
 
@@ -149,12 +157,10 @@ export class Amys extends React.Component {
     let path: string = serialize(this.state.sharedQueryParams);
     let baseUrl: string = 'http://localhost:5000/business_search/?' + path;
 
-    for (var index in this.state.termInputs) {
-      if (this.state.termInputs[index].length > 0) {
-        let baseUrlWithTerm = baseUrl + serializeTerm(this.state.termInputs[index]);
-        this.searchYelp(baseUrlWithTerm);
-      }
-    }
+    this.state.termInputs.filter((term) => term.length > 0).map((term) => {
+      let baseUrlWithTerm = baseUrl + serializeTerm(term);
+      this.searchYelp(baseUrlWithTerm);
+    });
   }
 
   searchYelp(url: string): void {
