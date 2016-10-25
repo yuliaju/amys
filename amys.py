@@ -18,18 +18,15 @@ def index():
 @app.route("/business_search/")
 def business_search():
     print("args: ", request.args)
-    term = request.args.get("term", "")
-    location = request.args.get("location", None)
-    openNow = request.args.get("openNow", False)
-    radius = request.args.get("radius", 1500)
-
-    # print(location)
-    # if location == None:
-    #     print "No term provided for business search, returning nothing"
-    #     return EMPTY_RESPONSE
+    term        = request.args.get("term", "")
+    location    = request.args.get("location", None)
+    latitude    = request.args.get("latitude", None)
+    longitude   = request.args.get("longitude", None)
+    openNow     = request.args.get("openNow", False)
+    radius      = request.args.get("radius", 1500)
 
     response = requests.get('https://api.yelp.com/v3/businesses/search',
-            params=get_search_params(term, location, openNow, radius),
+            params=get_search_params(term, location, latitude, longitude, openNow, radius),
             headers=get_auth_dict(get_yelp_access_token()))
     if response.status_code == 200:
         print "Got 200 for business search"
@@ -74,13 +71,22 @@ def get_yelp_access_token():
     return session[YELP_ACCESS_TOKEN]
 
 
-def get_search_params(term, location, open_now, radius):
-    return {
+def get_search_params(term, location, latitude, longitude, open_now, radius):
+    params = {
         'term': term,
-        'location': location,
         'radius': radius,
         'open_now': open_now
     }
+
+    if location is not None:
+        params['location'] = location
+    elif latitude is not None and longitude is not None:
+        params['latitude'] = latitude
+        params['longitude'] = longitude
+    else:
+        print "Didn't specify location"
+
+    return params
 
 
 def get_autocomplete_params(term, latitude=LATITUDE, longitude=LONGITUDE):

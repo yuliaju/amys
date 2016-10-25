@@ -9,11 +9,14 @@ import Button from 'react-button';
 import Dropdown from 'react-dropdown';
 import {append, curry} from 'ramda'
 import {serialize, serializeTerm} from '../utils/utils.js'
+import * as _ from 'lodash'
 
 const distances = [
   { label: '2 blocks', value: 161 },
   { label: '6 blocks', value: 483 },
   { label: '1 mile', value: 1609 },
+  { label: '2 miles', value: 3219 },
+  { label: '5 miles', value: 8047 },
 ];
 
 export class Amys extends React.Component {
@@ -24,11 +27,13 @@ export class Amys extends React.Component {
     // inputs            : Array<any>;
     termInputs        : Array<string>;
     radiusLabel       : string;
+    coordInUse        : boolean;
+    locationCoord     : Object;
   }
 
   onText: (index: number, event: any) => void;
   onRemoveTermBox: (index: number) => void;
-
+  onMapInput: (lat: number, lng: number) => void;
   // END Flow type definitions
 
   constructor(props: any) {
@@ -38,16 +43,18 @@ export class Amys extends React.Component {
       sharedQueryParams : {
         openNow   : false,
         location  : "",
-        radius : distances[0].value
+        radius    : distances[0].value
       },
-      textResults : [],
-      // inputs      : [{index: 0, type: 'text'}],
-      termInputs  : [""],
-      radiusLabel : distances[0].label
+      textResults   : [],
+      termInputs    : [""],
+      radiusLabel   : distances[0].label,
+      coordInUse    : false,
+      locationCoord : {lat: 40.730610, lng: -73.935242},
     };
 
     this.onText = this.onText.bind(this);
     this.onRemoveTermBox = this.onRemoveTermBox.bind(this);
+    this.onMapInput = this.onMapInput.bind(this);
   }
 
   render() {
@@ -56,14 +63,19 @@ export class Amys extends React.Component {
         {/* Location */}
         <Geosuggest
           placeholder="Enter an address!"
-          initialValue="New York City"
+          initialValue={this.state.sharedQueryParams.location}
           onSuggestSelect={(sug) => this.onSuggestSelect(sug)}
           location={new google.maps.LatLng(40.730610, -73.935242)}
           radius="20" />
+        {this.state.coordInUse ?
+          ( <div>
+              <span>Latitude: {this.state.sharedQueryParams.latitude.toFixed(3)}</span><br />
+              <span>Longitude: {this.state.sharedQueryParams.longitude.toFixed(3)}</span>
+            </div> )
+          : null}
 
         {/* Dynamic term inputs  */}
         {this.state.termInputs
-        // {this.state.inputs
           .map((term, index) => {
             const onTextFn = curry(this.onText)(index);
 
@@ -95,6 +107,16 @@ export class Amys extends React.Component {
     )
   }
 
+  onMapInput(lat: number, lng: number): void {
+    let newQueryParams = this.state.sharedQueryParams;
+    newQueryParams.latitude = lat;
+    newQueryParams.longitude = lng;
+
+    this.setState({sharedQueryParams: newQueryParams});
+    this.setState({coordInUse: true});
+    this.setState({locationCoord: {lat: lat, lng: lng}});
+  }
+
   onText(index: number, event: any): void {
     const newTermInputs = this.state.termInputs;
     newTermInputs[index] = event.target.value;
@@ -103,10 +125,6 @@ export class Amys extends React.Component {
   }
 
   onAddTermBox(): void {
-    // const oldInputs = this.state.inputs;
-    // const newInputs = append({type: 'text'}, oldInputs); // , class: 'ma4'
-
-    // this.setState({inputs: newInputs});
     const newTermInputs = this.state.termInputs;
     newTermInputs.push("");
 
@@ -114,11 +132,6 @@ export class Amys extends React.Component {
   }
 
   onRemoveTermBox(index: number): void {
-    console.log(index);
-    // const newInputs = this.state.inputs;
-    // newInputs.splice(index, 1);
-    // this.setState({inputs: newInputs});
-
     const newTermInputs = this.state.termInputs;
     newTermInputs.splice(index, 1);
     this.setState({termInputs: newTermInputs});
@@ -140,7 +153,6 @@ export class Amys extends React.Component {
   onSelectRadius(event: any): void {
     let newQueryParams = this.state.sharedQueryParams;
     newQueryParams.radius = event.value;
-    console.log(event);
 
     this.setState({sharedQueryParams: newQueryParams});
     this.setState({radiusLabel: event.label});
@@ -151,10 +163,21 @@ export class Amys extends React.Component {
     newQueryParams.location = suggest.label;
 
     this.setState({sharedQueryParams: newQueryParams});
+    this.setState({coordInUse: false});
+    this.setState({locationCoord: suggest.location});
+  }
+
+  getModifiedSharedQueryParams(): Object {
+    if (this.state.coordInUse) {
+      // remove location if latitude and longitude are specified
+      return _.omit(this.state.sharedQueryParams, ['location']);
+    } else {
+      return _.omit(this.state.sharedQueryParams, ['latitude', 'longitude']);
+    }
   }
 
   getSearchUrls(): void {
-    let path: string = serialize(this.state.sharedQueryParams);
+    let path: string = serialize(this.getModifiedSharedQueryParams());
     let baseUrl: string = 'http://localhost:5000/business_search/?' + path;
 
     this.state.termInputs.filter((term) => term.length > 0).map((term) => {
@@ -167,14 +190,14 @@ export class Amys extends React.Component {
     fetch(url)
       .then((response) => response.json())
       .then((response) => {
-        // console.log(response);
-
         // append results
         let newTextResults = this.state.textResults;
         let term = Object.keys(response)[0];
         newTextResults.push({[term]: response[term].businesses})
 
         this.setState({textResults: newTextResults});
+
+        return this.state.textResults;
       }).catch((error) => {
         console.error(error);
       });
@@ -182,7 +205,10 @@ export class Amys extends React.Component {
 
   renderChildren() {
     ReactDOM.render(
-      <Results textResults={this.state.textResults} />,
+      <Results
+        textResults={this.state.textResults}
+        onMapInput={this.onMapInput}
+        center={this.state.locationCoord} />,
       document.getElementById('results')
     )
   }

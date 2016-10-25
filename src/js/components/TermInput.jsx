@@ -17,11 +17,10 @@ export default class TermInput extends React.Component {
           <input key={this.props.index} onChange={(event) => this.props.onText(event)} />
           <Button
             onClick={() => this.props.remove(this.props.index)}
-            label="Remove" />
+            label="-" />
         </div>
       )
     }
-
 
     //later - add autocomplete functionality
 }
